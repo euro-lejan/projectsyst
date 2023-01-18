@@ -26,15 +26,7 @@
           ></item-menu>
         </v-col>
       </v-row>
-      <v-row>
-        <v-col>
-          <item-menu
-            icon="mdi-network-strength-4-cog"
-            title="ข้อมูลการตั้งค่า"
-            to="setting"
-          ></item-menu>
-        </v-col>
-      </v-row>
+
       <v-row>
         <v-col>
           <item-menu
@@ -43,14 +35,39 @@
             to="saveunit"
           ></item-menu>
         </v-col>
-        <v-col> </v-col>
       </v-row>
+
+      <v-row>
+        <v-col>
+          <item-menu
+            icon="mdi-network-strength-4-cog"
+            title="ข้อมูลการตั้งค่า"
+            to="setting"
+          ></item-menu>
+        </v-col>
+      
+        <v-col> 
+          <item-menu
+          icon="mdi-home-lightning-bolt-outline"
+  
+          title="ความปลอดภัย"
+          to="security"
+          >
+
+          </item-menu>
+        </v-col>
+      </v-row>
+
     </v-container>
   </div>
 </template>
 
 <script>
-export default {};
+import ItemMenu from '~/components/ItemMenu.vue';
+export default {
+  components: { ItemMenu },};
 </script>
 
-<style></style>
+<style>
+
+</style>
