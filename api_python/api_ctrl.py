@@ -10,7 +10,6 @@ from flask import Flask
 from flask_mqtt import Mqtt
 
 app = Flask(__name__)
-
 app = Flask(__name__,
             static_url_path='',
             static_folder='static',
@@ -23,8 +22,6 @@ app.config['MQTT_USERNAME'] = 'PowerSyst'
 app.config['MQTT_PASSWORD'] = '1234'
 app.config['MQTT_REFRESH_TIME'] = 1.0  # refresh time in seconds
 mqtt = Mqtt(app)
-
-
 
 @app.route('/onDoor',methods=['post'])
 def onDoor():
@@ -48,14 +45,19 @@ def offDoor():
 def savetime():
     j = request.get_json()
     print(j)
+
     timestart = j["starttime"].split(":",1)
+
     print(timestart[0])
     print(timestart[1])
+
     h_on = timestart[0]
     m_on = timestart[1]
     timeend = j["endtime"].split(":",1)
+
     print(timeend[0])
     print(timeend[1])
+
     h_off = timeend[0]
     m_off = timeend[1]
       
@@ -79,13 +81,20 @@ def savetime():
             day = 6
         elif j["day"] == "เสาร์" :
             day = 7
-        print (day)  
+        print (day) 
+         
         cursor.execute("INSERT INTO time_week(dayname,H_on,M_on,H_off,M_off) VALUES(%s,%s,%s,%s,%s)",(str(day),h_on,m_on,h_off,m_off))
     elif j["type"] == 2 :
         cursor.execute("INSERT INTO time_day(daystart,H_on,M_on,dayend,H_off,M_off) VALUES(%s,%s,%s,%s,%s,%s)",(j["daystart"],h_on,m_on,j["dayend"],h_off,m_off))
     connection.commit()
     connection.close()
-    return j
+
+    data = {"status" : 200}
+
+    json_return = jsonify(data)
+    return json_return  
+
+
 
 @app.route('/sendapigate',methods=['post'])
 def sendapi():
@@ -103,6 +112,40 @@ def sendapi():
         print(r)
 
     return jsonify(j)
+
+@app.route('/getdata_day', methods=['get'])
+def test_get_data():
+
+    connection = pymysql.connect(host="localhost",user="root",passwd="",database="power_system" )
+
+    cursor = connection.cursor()    
+    cursor.execute("SELECT daystart, H_on, M_on, dayend, H_off, M_off,idsetting FROM time_day ORDER BY id DESC LIMIT 5")
+    get_data = [dict( daystart = row[0], H_on = row[1], M_on = row[2], dayend = row[3], H_off = row[4], M_off = row[5], id = row[6] ) for row in cursor.fetchall() ]
+    
+    connection.close()
+
+    return jsonify(get_data)
+
+@app.route('/chk_count', methods=['get'])
+def chk_count():
+
+    connection = pymysql.connect(host="localhost",user="root",passwd="",database="power_system" )
+
+    cursor = connection.cursor()    
+    cursor.execute("SELECT count(daystart) FROM time_day")
+    rows = cursor.fetchall()
+    count = 0
+    data = {}
+
+    print(rows)
+    for row in rows :
+        # count = row[0]
+        data = {'count' : row[0]}
+
+    print(data)
+    connection.close()
+
+    return jsonify(data) 
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port='4003', use_reloader=True)
