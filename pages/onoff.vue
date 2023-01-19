@@ -81,8 +81,8 @@ export default {
     }
 
     .btn-off {
-      color: #000;
-      background-color: rgba(204, 204, 1) !important;
+      color: rgb(255, 251, 251);
+      background-color: rgb(204, 8, 1) !important;
     }
   }
 }

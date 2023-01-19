@@ -4,6 +4,7 @@
     <v-row class="warpper-input mt-10">
        <v-form ref="form" @submit.prevent="onsubmit">
         <v-row class="warpper-input">
+
           <v-select
             :items="type"
             item-value="id"
@@ -14,12 +15,16 @@
           ></v-select>
 
           <p v-if="time.type">เวลาเริ่มต้น</p>
-          <v-select
-            v-if="time.type == 1"
-            solo:items="items"
-            v-model="time.day"
-            placeholder="วัน"
-          ></v-select>
+
+          
+
+
+
+          <!-- <v-select solo:options="items" v-if="time.type == 1" v-model="time.day" placeholder="วัน"></v-select> -->
+
+          <v-select :items="items" v-if="time.type == 1" v-model="time.day" placeholder="วัน"></v-select>
+
+            
           <v-text-field
             v-if="time.type == 2"
             v-model="time.strat_tdate"
@@ -68,7 +73,8 @@
 </template>
 <script>
 //import VueDayjs from 'vue-dayjs-plugin';
-import axios from 'axios'
+import axios from 'axios';
+
   export default {
   data() {
     return {
@@ -93,40 +99,60 @@ import axios from 'axios'
       type: [
         { id: 1, name: "รายสัปดาห์" },
         { id: 2, name: "กำหนดเอง" },
-      ],
+      ]
+
     };
   },
   methods: {
+
+    // FUNTION ONSUBMIT 
     onsubmit(){
-      console.log("onsubmit");
+      //console.log("onsubmit");
     if (this.time.type==1) {
       console.log(this.time.type);
       console.log(this.time.day);
       console.log(this.time.strat_time);
       console.log(this.time.end_time);
+
+      //http://127.0.0.1:4003/savetime
     axios.post('http://127.0.0.1:4003/savetime', {
         type: this.time.type,
         day: this.time.day,
         starttime: this.time.strat_time,
         endtime: this.time.end_time
+    }).then((response) => {
+      const data = response.json();
+      console.log(response.data)
+      console.log(this.data.status);
+
     });
     }else if (this.time.type==2)
     {
-      console.log(this.time.type);
-      console.log(this.time.strat_tdate);
-      console.log(this.time.strat_time);
-      console.log(this.time.end_date);
-      console.log(this.time.end_time);
+      // console.log(this.time.type);
+      // console.log(this.time.strat_tdate);
+      // console.log(this.time.strat_time);
+      // console.log(this.time.end_date);
+      // console.log(this.time.end_time);
     axios.post('http://127.0.0.1:4003/savetime', {
         type: this.time.type,
         daystart: this.time.strat_tdate,
         starttime: this.time.strat_time,
         dayend: this.time.end_date,
         endtime: this.time.end_time
+    }).then((response) => {
+      
+      console.log(response.data.status);
+      if(response.data.status == 200){
+        window.location.href = 'setting';
+      }else{
+        alert("บันทึกข้อมูลไม่สำเร็จ");
+      }
+     
     });
     }
 
     }
+    // END FUNTION ONSUBMIT
   }
 };
 
