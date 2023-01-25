@@ -1,7 +1,16 @@
 import colors from "vuetify/es5/util/colors";
 const firebaseConfig = require("./firebase_setting.json");
+require("dotenv").config();
+const env = require("./env");
 
 export default {
+  server: {
+    port: 3999
+  },
+  env: {
+    ...env,
+    API_ENV: process.env.API_ENV
+  },
   // Disable server-side rendering: https://go.nuxtjs.dev/ssr-mode
   ssr: false,
 
@@ -27,10 +36,11 @@ export default {
   // Global CSS: https://go.nuxtjs.dev/config-css
   css: [
     '~/assets/app.scss',
+    'element-ui/lib/theme-chalk/index.css',
   ],
 
   // Plugins to run before rendering page: https://go.nuxtjs.dev/config-plugins
-  plugins: [{ src: "~/plugins/highcharts-vue.js", ssr: false }],
+  plugins: [{ src: "~/plugins/element-ui.js", ssr: false }, { src: "~/plugins/highcharts-vue.js", ssr: false },],
 
   // Auto import components: https://go.nuxtjs.dev/config-components
   components: true,
@@ -40,10 +50,19 @@ export default {
     // https://go.nuxtjs.dev/vuetify
     "@nuxtjs/vuetify",
     "@nuxtjs/firebase",
+    '@nuxtjs/moment',
   ],
 
   // Modules: https://go.nuxtjs.dev/config-modules
-  modules: [],
+  modules: [
+    '@nuxtjs/axios',
+  ],
+
+  axios: {
+    // Workaround to avoid enforcing hard-coded localhost:3000: https://github.com/nuxt-community/axios-module/issues/308
+    baseURL: '/',
+    credentials: true,
+  },
 
   firebase: {
     config: firebaseConfig,
