@@ -1,24 +1,105 @@
 <template>
   <div class="wrapper_page">
     <h1 class="mb-10">บันทึกหน่วยไฟฟ้า</h1>
-    <div class="card">
+    <el-date-picker
+      style="width: 100%"
+      v-model="search"
+      type="year"
+      placeholder="ปี"
+      @change="getdata()"
+    />
+    <div class="card my-2">
       <highcharts
         v-if="showing"
         :options="chartOptions"
         style="border-radius: 15px"
       ></highcharts>
     </div>
-    <v-form ref="form" @submit.prevent="onsubmit">
-      <v-row style="align-items: baseline">
-        <v-col cols="8">
+    <!-- <v-col>
+      <v-btn
+        block
+        elevation="2"
+        color="#526FFF"
+        style="color: #fff; border-radius: 15px"
+        @click="dialog = !dialog"
+        >เพิ่ม</v-btn
+      >
+    </v-col> -->
+    <v-row>
+      <v-col>
+        <v-simple-table class="text-center">
+          <template v-slot:default>
+            <thead>
+              <tr>
+                <th class="text-center" style="width: 10%">ลำดับ</th>
+                <th class="text-center">เดือน</th>
+                <th class="text-center">หน่วย</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(item, i) in items" :key="i">
+                <td>{{ i + 1 }}</td>
+                <td>{{ checkmonth(new Date(item.date).getMonth()) }}</td>
+                <td>{{ item.unit }}</td>
+              </tr>
+            </tbody>
+          </template>
+        </v-simple-table>
+      </v-col>
+    </v-row>
+    <!-- <v-dialog v-model="dialog" width="500" class="dialog">
+      <v-card style="padding: 20px" class="card">
+        <p style="font-weight: bolder; font-size: 25px; text-align: center">
+          เพิ่มหน่วยไฟฟ้า
+        </p>
+        <v-form ref="form" @submit.prevent="onsubmit">
+          <v-menu
+            ref="menu"
+            v-model="dialog1"
+            :close-on-content-click="false"
+            :return-value.sync="addunit.date"
+            transition="scale-transition"
+            offset-y
+            max-width="290px"
+            min-width="auto"
+          >
+            <template v-slot:activator="{ on, attrs }">
+              <v-text-field
+                v-model="addunit.date"
+                label="เลือกเดือน"
+                readonly
+                v-bind="attrs"
+                v-on="on"
+                solo
+              ></v-text-field>
+            </template>
+            <v-date-picker
+              v-model="addunit.date"
+              type="month"
+              no-title
+              scrollable
+            >
+              <v-spacer></v-spacer>
+              <v-btn text color="primary" @click="dialog1 = false">
+                Cancel
+              </v-btn>
+              <v-btn
+                text
+                color="primary"
+                @click="$refs.menu.save(addunit.date)"
+              >
+                OK
+              </v-btn>
+            </v-date-picker>
+          </v-menu>
           <v-text-field
-            solo
-            v-model="unit"
             type="number"
-            placeholder="กรอกหน่วยที่ใช้"
-          ></v-text-field
-        ></v-col>
-        <v-col class="mt-5 pl-0 wrapper-btn">
+            label="ค่าวัตถ์"
+            suffix="หน่วย"
+            solo
+            v-model="addunit.unit"
+          ></v-text-field>
+
           <v-btn
             block
             elevation="2"
@@ -27,69 +108,76 @@
             type="submit"
             >บันทึก</v-btn
           >
-        </v-col>
-      </v-row>
-    </v-form>
-    <v-row style="margin-top: -30px">
-      <v-col>
-        <v-simple-table>
-          <template v-slot:default>
-            <thead>
-              <tr>
-                <th class="text-left">เดือนที่</th>
-                <th class="text-left">หน่วย</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(item, i) in desserts" :key="i">
-                <td>{{ i + 1 }}</td>
-                <td>{{ item.unit }}</td>
-              </tr>
-            </tbody>
-          </template>
-        </v-simple-table>
-      </v-col>
-    </v-row>
+        </v-form>
+      </v-card>
+    </v-dialog> -->
   </div>
 </template>
 
 <script>
 import { Chart } from "highcharts-vue";
-
+import moment from "moment";
 export default {
   components: {
     highcharts: Chart,
   },
+  watch: {
+    items(newval) {
+      this.chartOptions.series.data = newval.map((e) => e.unit);
+      this.chartOptions.title.text = `ปี ${moment(this.search).format("YYYY")}`;
+      this.chartOptions.series.name = "ไฟฟ้าที่ใช้";
+      this.chartOptions.xAxis.categories = newval.map((e) => moment(e.date).format("MMM"));
+    },
+    dialog(val) {
+      if (!val) {
+        this.addunit = {
+          date: "",
+          unit: 0,
+        };
+      }
+    },
+  },
   data() {
     return {
-      unit: 0,
+      search: moment().format("YYYY"),
+      dialog: false,
+      dialog1: false,
+      addunit: {
+        date: "",
+        unit: 0,
+      },
+      items: [],
+      unit: [],
+      time: [],
       showing: true,
       chartOptions: {
-        // title: {
-        //   text: "ช่วงเวลารถเข้า/ออก",
-        // },
-        // yAxis: {
-        //   title: {
-        //     text: "จำนวนรถ",
-        //   },
-        // },
+        title: {
+          text: "ค่าไฟฟ้าแต่ละปี",
+          align: "center",
+        },
+        yAxis: {
+          title: {
+            text: "จำนวนหน่วย",
+          },
+        },
         chart: {
-          height: this.height - 10,
+          text: "จำนวนหน่วย",
+          height: 200,
         },
         xAxis: {
           categories: [
-            "Jan",
-            "Feb",
-            "Mar",
-            "Apr",
-            "May",
-            "Jun",
-            "Jul",
-            "Aug",
-            "Sep",
-            "Oct",
-            "Nov",
-            "Dec",
+            "1",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "10",
+            "11",
+            "12",
           ],
         },
         legend: {
@@ -98,16 +186,10 @@ export default {
           verticalAlign: "middle",
         },
 
-        series: [
-          {
-            name: "A",
-            data: [1, 2, 3, 1, 5, 4, 3, 2],
-          },
-          {
-            name: "B",
-            data: [3, 4, 5, 6, 1, 4, 6, 3, 4, 5],
-          },
-        ],
+        series: {
+          name: "ค่าไฟ(หน่วย)",
+          data: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+        },
 
         responsive: {
           rules: [
@@ -125,33 +207,49 @@ export default {
             },
           ],
         },
-        colors: ["#3336FF", "#41EDE8"],
+        colors: ["#3336FF"],
       },
-      headers: [
-        {
-          text: "ลำดับ",
-          value: "id",
-        },
-        { text: "หน่วย", value: "unit" },
-      ],
-      desserts: [
-        {
-          id: "Frozen Yogurt",
-          
-          unit: 159,
-        },
-        {
-          id: "Ice cream sandwich",
-          unit: 237,
-        },
-      ],
     };
   },
+  mounted() {
+    this.getdata();
+  },
   methods: {
-    async onsubmit(){
-      console.log("onsubmit");
-    }
-  }
+    checkmonth(index){
+      const month = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+      return month[index]
+    },
+    async getdata() {
+      var datestart = moment(this.search);
+      var dateend = moment(this.search).add(1, "y");
+      await this.$axios
+        .post(`${process.env.BASE_URL}/saveunit/all`, {
+          datestart,
+          dateend,
+        })
+        .then((response) => {
+          this.items = response.data.data;
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    },
+    // async onsubmit() {
+    //   this.$axios
+    //     .post(`${process.env.BASE_URL}/saveunit/add`, {
+    //       ...this.addunit,
+    //       unit: parseInt(this.addunit.unit),
+    //     })
+    //     .then((response) => {
+    //       // this.items.push(response.data.data);
+    //       location.reload();
+    //       this.dialog = false;
+    //     })
+    //     .catch((err) => {
+    //       console.log(err);
+    //     });
+    // },
+  },
 };
 </script>
 
